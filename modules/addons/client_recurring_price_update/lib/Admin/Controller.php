@@ -13,12 +13,23 @@ class Controller {
         $dt         = '';
 
         $dt .= '<form action="' . $modulelink . '" method="POST" style="padding:25px;box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;width:fit-content">';
-        $dt .= '<label>Product</label><br/><select id="product" value="all" class="custom-select">
+
+        $products = localAPI('GetProducts');
+        $product_options = "";
+        foreach ($products['products']['product'] as $p){
+            $product_options .= "<option value=\"${p['pid']}\">${p['name']}</option>";
+        }
+            
+        $dt .= '<label>Product Type</label><br/><select id="product_type" value="all" class="custom-select">
             <option value="all">All</option>
             <option value="hosting">Hosting</option>
             <option value="addon">Addons</option>
             <option value="domain">Domain</option>
          </select><br/>';
+
+        $dt .= '<label>Product</label><br/><select id="product_id" value="all" class="custom-select">
+            <option value="all">All</option>' . $product_options . '</select><br/>';
+
         $dt .= '<label>Currency</label><br/><select id="currencyId" value="0" class="custom-select">';
             
         foreach(Capsule::table('tblcurrencies')->get() as $currencies){
@@ -35,13 +46,11 @@ class Controller {
 
         return <<<EOF
 
-<h2>Client Recurring Price Update</h2>
-
 <p>Updates recurring price for all products using WHMCS Auto Recalculate feature</p>
 
 <p><strong>Steps:</strong></p>
 <ol>
-<li>Select Product</li>
+<li>Select Product Type</li>
 <li>Select Currency For which you want to Update Or select "All Currency" option To update All Users</li>
 <li>Click Button And Wait for process to Complete</li>
 </ol>
@@ -51,7 +60,7 @@ class Controller {
 </p>
 
 <style>
-select#product{
+select.custom-select{
   width: 250px;
   min-width: 15ch;
   max-width: 30ch;
@@ -95,51 +104,80 @@ EOF;
     public function submit($post)
     {
         $currId     = $post['currencyId'];
-        $product    = $post['product'];
+        $product    = $post['product_type'];
+        $productID  = $post['product_id'];
         $modulelink = $vars['modulelink'];
         $version    = $vars['version']; 
         $LANG       = $vars['_lang']; 
         $dt         = "";
 
         if($currId > 0){
-            foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
-                if($product && ($product == "All" || $product == "hosting")){
-                    foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
+
+            if (!empty($productID)){
+                // TODO: This should eventually become a JOIN statement rather than nested queries
+                foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){ 
+                    foreach (Capsule::table('tblhosting')->where(array(
+                        ['userid', '=', $userid],
+                        ['packageid', '=', $productId],
+                        ['domainstatus', 'IN', ['Active','Suspended']],
+                    ))->pluck('id') as $serviceId) {
                         localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
                 }
-                if($product && ($product == "All" || $product == "addon")){
-                    foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
-                        localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
-                    }
-                }
-                if($product && ($product == "All" || $product == "domain")){
-                    foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
-                        localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
-                    }
-                }
+                $dt .= '<h4>Update completed for clients hosting plans using the selected product and with currency: ' . $_POST['currencyCode'] . '</h4><br/>';
             }
-            $dt .= '<h4>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</h4><br/>';
+            else{
+                foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
+                    if($product && ($product == "All" || $product == "hosting")){
+                        foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
+                            localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                        }
+                    }
+                    if($product && ($product == "All" || $product == "addon")){
+                        foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
+                            localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
+                        }
+                    }
+                    if($product && ($product == "All" || $product == "domain")){
+                        foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
+                            localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
+                        }
+                    }
+                }
+                $dt .= '<h4>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</h4><br/>';
+            }
+
         }
         else{
-            foreach(Capsule::table('tblclients')->pluck('id') as $userid){
-                if($product && ($product == "All" || $product == "hosting")){
-                    foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
-                        localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
-                    }
+            if (!empty($productID)){
+                foreach (Capsule::table('tblhosting')->where(array(
+                    ['packageid', '=', $productId],
+                    ['domainstatus', 'IN', ['Active','Suspended']],
+                ))->pluck('id') as $serviceId) {
+                    localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                 }
-                if($product && ($product == "All" || $product == "addon")){
-                    foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
-                        localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
-                    }
-                }
-                if($product && ($product == "All" || $product == "domain")){
-                    foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
-                        localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
-                    }
-                }        
+                $dt .= '<h4>Update completed for clients hosting plans using the selected product</h4><br/>';
             }
-            $dt .= '<h4>Update completed for all clients</h4><br/>';
+            else{
+                foreach(Capsule::table('tblclients')->pluck('id') as $userid){
+                    if($product && ($product == "All" || $product == "hosting")){
+                        foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
+                            localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                        }
+                    }
+                    if($product && ($product == "All" || $product == "addon")){
+                        foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
+                            localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
+                        }
+                    }
+                    if($product && ($product == "All" || $product == "domain")){
+                        foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
+                            localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
+                        }
+                    }        
+                }
+                $dt .= '<h4>Update completed for all clients</h4><br/>';
+            }
         }
    
         $dt.='<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 20%;">&laquo; Go Back </a>';

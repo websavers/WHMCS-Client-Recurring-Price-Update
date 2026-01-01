@@ -14,8 +14,8 @@ function client_recurring_price_update_config()
         // Display name for your module
         'name' => 'Client Recurring Price Update',
         // Description displayed within the admin interface
-        'description' => 'Updates the recurring price of all client owned services from the current product pricing.',
-        'author' => 'Modified by Websavers - websavers.ca | Originally written by Akash Kothari - cyberhale.com',
+        'description' => 'Updates the recurring price of all client owned services from the current product pricing. Originally written by Akash Kothari - cyberhale.com',
+        'author' => 'Websavers Inc',
         'language' => 'english',
         'version' => '2.0',
     ];
