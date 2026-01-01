@@ -1,2 +1,6 @@
 # Whmcs-Client-Recurring-Price-Update
-This addon allows you to update domains, products and addon prices for each currency or all using WHMCS Re-calculate on Save option. This can also be helpful if you change your product pricing and want to update old orders.
+This addon allows you to update domains, products and addon prices for each currency or all by triggering WHMCS's Re-calculate on Save option in bulk. 
+
+This is helpful when you want to change product pricing and apply the new pricing to existing client services.
+
+The WHMCS bulk pricing updater can also do something similar, but it fails to take into account configurable options, which this will do automatically.
