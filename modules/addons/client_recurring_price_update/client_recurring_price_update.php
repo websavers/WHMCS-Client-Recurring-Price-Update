@@ -1,11 +1,4 @@
 <?php
-/**
- * For more information, please refer to the online documentation.
- *
- * @see https://whmcs.cyberhale.com/
- *
- */
-
 
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Addon\client_recurring_price_update\Admin\AdminDispatcher;

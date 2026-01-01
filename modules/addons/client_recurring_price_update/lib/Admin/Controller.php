@@ -2,6 +2,7 @@
 
 namespace WHMCS\Module\Addon\client_recurring_price_update\Admin;
 use WHMCS\Database\Capsule;
+
 class Controller {
 
     public function index($vars)
@@ -51,7 +52,7 @@ foreach(Capsule::table('tblcurrencies')->get() as $currencies){
       </form><br/>';
         return <<<EOF
 
-<h2>Client Recurring Price Update - Module by <a href="https://cyberhale.com" target="_blank">CyberHale.com</a></h2>
+<h2>Client Recurring Price Update</h2>
 
 <p>Updates recurring price for all products using WHMCS Auto Recalculate feature</p>
 
