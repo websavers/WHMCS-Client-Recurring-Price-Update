@@ -9,7 +9,6 @@
 
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Addon\client_recurring_price_update\Admin\AdminDispatcher;
-use WHMCS\Module\Addon\client_recurring_price_update\Client\ClientDispatcher;
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
@@ -24,9 +23,9 @@ function client_recurring_price_update_config()
         // Description displayed within the admin interface
         'description' => 'Updates the Recurring Price of all Products for all clients'
             . ' With the click of one button.',
-        'author' => 'Akash Kothari - cyberhale.com',
+        'author' => 'Forked by Websavers - websavers.ca | Originally written by Akash Kothari - cyberhale.com',
         'language' => 'english',
-        'version' => '1.0',
+        'version' => '2.0',
     ];
 }
 
