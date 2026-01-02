@@ -25,7 +25,7 @@ class Controller {
 
         $dt .= '<form id="crpu" action="' . $modulelink . '" method="POST">';
 
-        $dt .= "<input type='checkbox' name='testrun' id='testrun' checked='checked' /> Test Run";
+        $dt .= "<input type='checkbox' name='testrun' id='testrun' checked='checked' /> Test Run <br/>";
 
         $dt .= "<label>Currency</label><br/><select id='currencyId' value='0' class='custom-select'>$currency_options</select><br/>";
 
@@ -105,6 +105,10 @@ EOF;
         $updated_addonIds = array();
         $updated_domainIds = array();
 
+        //var_dump($testrun); return ''; ///DEBUG
+
+        if ($testrun) $dt .= 'This is a test run. No services will actually be updated.<br/>';
+
         if($currId > 0){
 
             if (!empty($productID)){
@@ -119,7 +123,7 @@ EOF;
                         if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
                 }
-                $dt .= '<h4>Update completed for clients hosting plans created from product ID ' . $productID . ' and using currency: ' . $_POST['currencyCode'] . '</h4><br/>';
+                $dt .= '<strong>Update completed for clients hosting plans created from product ID ' . $productID . ' and using currency: ' . $_POST['currencyCode'] . '</strong><br/>';
             }
             else{
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
@@ -142,7 +146,7 @@ EOF;
                         }
                     }
                 }
-                $dt .= '<h4>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</h4>';
+                $dt .= '<strong>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</strong>';
             }
 
         }
@@ -156,7 +160,7 @@ EOF;
                     $updated_serviceIds[] = $serviceId;
                     if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                 }
-                $dt .= '<h4>Update completed for clients hosting plans using the selected product</h4><br/>';
+                $dt .= '<strong>Update completed for clients hosting plans using the selected product</strong><br/>';
             }
             else{
                 foreach(Capsule::table('tblclients')->pluck('id') as $userid){
@@ -179,7 +183,7 @@ EOF;
                         }
                     }        
                 }
-                $dt .= '<h4>Update completed for all clients</h4><br/>';
+                $dt .= '<strong>Update completed for all clients</strong><br/>';
             }
 
         }
@@ -187,7 +191,7 @@ EOF;
         $dt .= 'Service IDs: ' . implode(',', $updated_serviceIds);
         $dt .= 'Addon IDs: ' . implode(',', $updated_addonIds);
         $dt .= 'Domain IDs: ' . implode(',', $updated_domainIds);
-        $dt .= '<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 20%;">&laquo; Go Back </a>';
+        $dt .= '<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 5px;">&laquo; Go Back </a>';
 
         return $dt;
 
