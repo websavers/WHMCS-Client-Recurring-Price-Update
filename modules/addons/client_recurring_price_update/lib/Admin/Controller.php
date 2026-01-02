@@ -117,6 +117,7 @@ EOF;
                     ->where('tblclients.currency', '=', $currId)
                     ->where('tblhosting.packageid', '=', $productId)
                     ->whereIn('tblhosting.domainstatus', ['Active','Suspended'])
+                    ->orderBy('tblhosting.id')
                     ->get();
 
                 //return print_r($hosting_plans, true); //DEBUG
@@ -161,6 +162,7 @@ EOF;
                     ->select('tblhosting.id')
                     ->where('tblhosting.packageid', '=', $productId)
                     ->whereIn('tblhosting.domainstatus', ['Active','Suspended'])
+                    ->orderBy('tblhosting.id')
                     ->get();
 
                 //return print_r($hosting_plans, true); //DEBUG
@@ -205,10 +207,17 @@ EOF;
             $dt .= '<h4>The following has been changed:</h4>';
         }
 
+        $affected_serviceIds_c = count($affected_serviceIds);
+        $affected_addonIds_c = count($affected_addonIds);
+        $affected_domainIds_c = count($affected_domainIds);
+
         $dt .= '<ul>';
-        $dt .= '<li>Service IDs: ' . implode(',', $affected_serviceIds) . '</li>';
-        $dt .= '<li>Addon IDs: ' . implode(',', $affected_addonIds) . '</li>';
-        $dt .= '<li>Domain IDs: ' . implode(',', $affected_domainIds) . '</li>';
+        if ($affected_serviceIds_c > 0)
+            $dt .= '<li>Service IDs (' . $affected_serviceIds_c . '): <div style="max-width: 600px">' . implode(" ", $affected_serviceIds) . '</div></li>';
+        if ($affected_addonIds_c > 0)
+            $dt .= '<li>Addon IDs (' . $affected_addonIds_c . '): <div style="max-width: 600px">' . implode(" ", $affected_addonIds) . '</div></li>';
+        if ($affected_domainIds_c > 0)
+            $dt .= '<li>Domain IDs (' . $affected_domainIds_c . '): <div style="max-width: 600px">' . implode(" ", $affected_domainIds) . '</div></li>';
         $dt .= '</ul>';
         $dt .= '<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 5px;">&laquo; Go Back </a>';
 
