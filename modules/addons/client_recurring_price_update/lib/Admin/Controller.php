@@ -46,7 +46,7 @@ class Controller {
 
         return <<<EOF
 
-<p>Updates recurring price for all products using WHMCS Auto Recalculate feature</p>
+<p>This tool updates the recurring price for all client services using WHMCS Auto Recalculate feature.</p>
 
 <p>
     {$dt}
@@ -56,20 +56,7 @@ class Controller {
 select.custom-select{
   width: 250px;
   min-width: 15ch;
-  max-width: 30ch;
-  border: 1px solid;
-  border-radius: 0.25em;
-  padding: 0.25em 0.5em;
-  font-size: 1.25rem;
-  cursor: pointer;
-  line-height: 1.1;
-  background-color: #fff;
-  background-image: linear-gradient(to top, #f9f9f9, #fff 33%);
-}
-select#currencyId{
-  width: 250px;
-  min-width: 15ch;
-  max-width: 30ch;
+  max-width: 50ch;
   border: 1px solid;
   border-radius: 0.25em;
   padding: 0.25em 0.5em;
