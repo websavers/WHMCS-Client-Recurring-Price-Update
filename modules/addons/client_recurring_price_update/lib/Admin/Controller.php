@@ -25,6 +25,8 @@ class Controller {
 
         $dt .= '<form id="crpu" action="' . $modulelink . '" method="POST">';
 
+        $dt .= "<input type='checkbox' name='testrun' id='testrun' checked='checked' /> Test Run";
+
         $dt .= "<label>Currency</label><br/><select id='currencyId' value='0' class='custom-select'>$currency_options</select><br/>";
 
         $dt .= '<hr/>';
@@ -93,10 +95,15 @@ EOF;
         $currId     = $post['currencyId'];
         $product    = $post['product_type'];
         $productID  = $post['product_id'];
+        $testrun    = isset($post['testrun'])? true:false;
         $modulelink = $vars['modulelink'];
         $version    = $vars['version']; 
         $LANG       = $vars['_lang']; 
         $dt         = "";
+
+        $updated_serviceIds = array();
+        $updated_addonIds = array();
+        $updated_domainIds = array();
 
         if($currId > 0){
 
@@ -108,7 +115,8 @@ EOF;
                         ['packageid', '=', $productId],
                         ['domainstatus', 'IN', ['Active','Suspended']],
                     ))->pluck('id') as $serviceId) {
-                        localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                        $updated_serviceIds[] = $serviceId;
+                        if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
                 }
                 $dt .= '<h4>Update completed for clients hosting plans created from product ID ' . $productID . ' and using currency: ' . $_POST['currencyCode'] . '</h4><br/>';
@@ -117,31 +125,36 @@ EOF;
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
                     if($product && ($product == "All" || $product == "hosting")){
                         foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
-                            localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                            $updated_serviceIds[] = $serviceId;
+                            if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                         }
                     }
                     if($product && ($product == "All" || $product == "addon")){
                         foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
-                            localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
+                            $updated_addonIds[] = $serviceAddonId;
+                            if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
                         }
                     }
                     if($product && ($product == "All" || $product == "domain")){
                         foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
-                            localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
+                            $updated_domainIds[] = $domainId;
+                            if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
                         }
                     }
                 }
-                $dt .= '<h4>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</h4><br/>';
+                $dt .= '<h4>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</h4>';
             }
 
         }
         else{
+
             if (!empty($productID)){
                 foreach (Capsule::table('tblhosting')->where(array(
                     ['packageid', '=', $productId],
                     ['domainstatus', 'IN', ['Active','Suspended']],
                 ))->pluck('id') as $serviceId) {
-                    localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                    $updated_serviceIds[] = $serviceId;
+                    if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                 }
                 $dt .= '<h4>Update completed for clients hosting plans using the selected product</h4><br/>';
             }
@@ -149,25 +162,32 @@ EOF;
                 foreach(Capsule::table('tblclients')->pluck('id') as $userid){
                     if($product && ($product == "All" || $product == "hosting")){
                         foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
-                            localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                            $updated_serviceIds[] = $serviceId;
+                            if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                         }
                     }
                     if($product && ($product == "All" || $product == "addon")){
                         foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
-                            localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
+                            $updated_addonIds[] = $serviceAddonId;
+                            if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
                         }
                     }
                     if($product && ($product == "All" || $product == "domain")){
                         foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
-                            localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
+                            $updated_domainIds[] = $domainId;
+                            if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
                         }
                     }        
                 }
                 $dt .= '<h4>Update completed for all clients</h4><br/>';
             }
+
         }
-   
-        $dt.='<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 20%;">&laquo; Go Back </a>';
+
+        $dt .= 'Service IDs: ' . implode(',', $updated_serviceIds);
+        $dt .= 'Addon IDs: ' . implode(',', $updated_addonIds);
+        $dt .= 'Domain IDs: ' . implode(',', $updated_domainIds);
+        $dt .= '<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 20%;">&laquo; Go Back </a>';
 
         return $dt;
 
