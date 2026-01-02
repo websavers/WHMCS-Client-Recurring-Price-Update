@@ -48,13 +48,6 @@ class Controller {
 
 <p>Updates recurring price for all products using WHMCS Auto Recalculate feature</p>
 
-<p><strong>Steps:</strong></p>
-<ol>
-<li>Select Product Type</li>
-<li>Select Currency For which you want to Update Or select "All Currency" option To update All Users</li>
-<li>Click Button And Wait for process to Complete</li>
-</ol>
-
 <p>
     {$dt}
 </p>
