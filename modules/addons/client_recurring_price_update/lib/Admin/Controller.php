@@ -94,7 +94,7 @@ EOF;
     {
         $currId     = $post['currencyId'];
         $product    = $post['product_type'];
-        $productID  = $post['product_id'];
+        $productId  = $post['product_id'];
         $testrun    = isset($post['testrun'])? true:false;
         $modulelink = $vars['modulelink'];
         $version    = $vars['version']; 
@@ -110,10 +110,13 @@ EOF;
         if ($testrun) $dt .= 'This is a test run. No services will actually be updated.<br/>';
 
         if($currId > 0){
+            var_dump($currId)
 
-            if (!empty($productID)){
+            if (!empty($productId)){
+                var_dump($productId);
                 // TODO: This should eventually become a JOIN statement rather than nested queries
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){ 
+                    var_dump($userid);
                     foreach (Capsule::table('tblhosting')->where(array(
                         ['userid', '=', $userid],
                         ['packageid', '=', $productId],
@@ -123,7 +126,7 @@ EOF;
                         if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
                 }
-                $dt .= '<strong>Update completed for clients hosting plans created from product ID ' . $productID . ' and using currency: ' . $_POST['currencyCode'] . '</strong><br/>';
+                $dt .= '<strong>Update completed for clients hosting plans created from product ID ' . $productId . ' and using currency: ' . $_POST['currencyCode'] . '</strong><br/>';
             }
             else{
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
@@ -152,7 +155,7 @@ EOF;
         }
         else{
 
-            if (!empty($productID)){
+            if (!empty($productId)){
                 foreach (Capsule::table('tblhosting')->where(array(
                     ['packageid', '=', $productId],
                     ['domainstatus', 'IN', ['Active','Suspended']],
