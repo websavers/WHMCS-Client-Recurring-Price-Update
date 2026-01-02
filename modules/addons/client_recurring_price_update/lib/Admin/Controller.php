@@ -11,36 +11,38 @@ class Controller {
         $version    = $vars['version']; 
         $LANG       = $vars['_lang'];
         $dt         = '';
-
-        $dt .= '<form action="' . $modulelink . '" method="POST" style="padding:25px;box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;width:fit-content">';
+        $product_options = "";
+        $currency_options = "";
 
         $products = localAPI('GetProducts');
-        $product_options = "";
         foreach ($products['products']['product'] as $p){
-            $product_options .= "<option value=\"${p['pid']}\">${p['name']}</option>";
+            $product_options .= "<option value='" . $p['pid'] . "'>" . $p['name'] . "</option>";
         }
+        foreach(Capsule::table('tblcurrencies')->get() as $currencies){
+            $currency_options .= '<option value="' . $currencies->id . '">' . $currencies->code . '</option>';
+        }
+        $currency_options .= '<option value="0">All Currencies</option>';
+
+        $dt .= '<form id="crpu" action="' . $modulelink . '" method="POST">';
+
+        $dt .= "<label>Currency</label><br/><select id='currencyId' value='0' class='custom-select'>$currency_options</select><br/>";
+
+        $dt .= '<hr/>';
             
-        $dt .= '<label>Product Type</label><br/><select id="product_type" value="all" class="custom-select">
+        $dt .= '<label>Select by Service Type</label><br/><select id="product_type" value="all" class="custom-select">
             <option value="all">All</option>
             <option value="hosting">Hosting</option>
             <option value="addon">Addons</option>
             <option value="domain">Domain</option>
-         </select><br/>';
+         </select>';
 
-        $dt .= '<label>Product</label><br/><select id="product_id" value="all" class="custom-select">
+        $dt .= '<div style="text-align:center;margin-top:10px;">&mdash; OR &mdash;</div>';
+        $dt .= '<label>Select by Product</label><br/><select id="product_id" value="all" class="custom-select">
             <option value="all">All</option>' . $product_options . '</select><br/>';
 
-        $dt .= '<label>Currency</label><br/><select id="currencyId" value="0" class="custom-select">';
-            
-        foreach(Capsule::table('tblcurrencies')->get() as $currencies){
-            $dt.='<option value="' . $currencies->id . '">' . $currencies->code . '</option>';
-        }
-
-        $dt .= '<option value="0">All Currencies</option>';
-     
-        $dt .= '</select><br/><hr/>';
+        $dt .= '<hr/>';
         $dt .= '<input type="hidden" name="action" value="submit"/>
-            <button type="submit" id="updatePrices">Update User Price &raquo;</button>
+            <button type="submit" id="updatePrices">Update service prices &raquo;</button>
             </form><br/>';
 
 
@@ -53,6 +55,11 @@ class Controller {
 </p>
 
 <style>
+form#crpu{
+    padding: 25px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 5px;
+    width: fit-content;
+}
 select.custom-select{
   width: 250px;
   min-width: 15ch;
