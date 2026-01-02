@@ -111,7 +111,7 @@ EOF;
                         localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
                 }
-                $dt .= '<h4>Update completed for clients hosting plans using the selected product and with currency: ' . $_POST['currencyCode'] . '</h4><br/>';
+                $dt .= '<h4>Update completed for clients hosting plans created from product ID ' . $productID . ' and using currency: ' . $_POST['currencyCode'] . '</h4><br/>';
             }
             else{
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){

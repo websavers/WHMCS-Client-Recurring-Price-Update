@@ -62,7 +62,6 @@ function client_recurring_price_update_output($vars)
     $modulelink = $vars['modulelink']; 
     $version = $vars['version']; 
     $_lang = $vars['_lang'];
-    $dt = "";
     
     $action = isset($_POST['action']) ? $_POST['action'] : 'index';
 
