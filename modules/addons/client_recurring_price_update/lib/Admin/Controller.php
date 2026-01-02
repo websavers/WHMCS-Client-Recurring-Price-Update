@@ -92,109 +92,124 @@ EOF;
     public function submit($post)
     {
         $currId     = $post['currencyId'];
-        $product    = $post['product_type'];
+        $productType = $post['product_type'];
         $productId  = $post['product_id'];
         $testrun    = isset($post['testrun'])? true:false;
         $modulelink = $vars['modulelink'];
         $version    = $vars['version']; 
         $LANG       = $vars['_lang']; 
-        $dt         = "";
+        $dt         = ""; //Return Output
 
-        $updated_serviceIds = array();
-        $updated_addonIds = array();
-        $updated_domainIds = array();
+        $affected_serviceIds = array();
+        $affected_addonIds = array();
+        $affected_domainIds = array();
 
         //var_dump($testrun); return ''; ///DEBUG
 
         if ($testrun) $dt .= 'This is a test run. No services will actually be updated.<br/>';
 
-        return $currId;
-
         if ($currId > 0){
-            return $currId; ///DEBUG
 
             if (!empty($productId)){
-                return $productId; ///DEBUG
-                // TODO: This should eventually become a JOIN statement rather than nested queries
-                foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){ 
-                    return $userid; ///DEBUG
-                    foreach (Capsule::table('tblhosting')->where(array(
-                        ['userid', '=', $userid],
-                        ['packageid', '=', $productId],
-                        ['domainstatus', 'IN', ['Active','Suspended']],
-                    ))->pluck('id') as $serviceId) {
-                        $updated_serviceIds[] = $serviceId;
-                        if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
-                    }
+                $hosting_plans = Capsule::table('tblhosting')
+                    ->join('tblclients', 'tblhosting.userid', '=', 'tblclients.id')
+                    ->select('tblhosting.id')
+                    ->where('tblclients.currency', '=', $currId)
+                    ->where('tblhosting.packageid', '=', $productId)
+                    ->whereIn('tblhosting.domainstatus', ['Active','Suspended'])
+                    ->get();
+
+                //return print_r($hosting_plans, true); //DEBUG
+                foreach ($hosting_plans as $service){
+                    $affected_serviceIds[] = $service->id;
+                    if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $service->id, 'autorecalc' => true));
                 }
-                $dt .= '<strong>Update completed for clients hosting plans created from product ID ' . $productId . ' and using currency: ' . $_POST['currencyCode'] . '</strong><br/>';
+                if (!$testrun){
+                    $dt .= "<div><strong>Update completed for clients hosting plans created from product ID $productId and currency ID $currId</strong></div>";
+                }
             }
             else{
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
-                    if($product && ($product == "All" || $product == "hosting")){
+                    if($productType && ($productType == "All" || $productType == "hosting")){
                         foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
-                            $updated_serviceIds[] = $serviceId;
+                            $affected_serviceIds[] = $serviceId;
                             if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                         }
                     }
-                    if($product && ($product == "All" || $product == "addon")){
+                    if($productType && ($productType == "All" || $productType == "addon")){
                         foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
-                            $updated_addonIds[] = $serviceAddonId;
+                            $affected_addonIds[] = $serviceAddonId;
                             if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
                         }
                     }
-                    if($product && ($product == "All" || $product == "domain")){
+                    if($productType && ($productType == "All" || $productType == "domain")){
                         foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
-                            $updated_domainIds[] = $domainId;
+                            $affected_domainIds[] = $domainId;
                             if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
                         }
                     }
                 }
-                $dt .= '<strong>Update completed for clients with currency: ' . $_POST['currencyCode'] . '</strong>';
+                if (!$testrun){
+                    $dt .= "<div><strong>Update completed for all selected product types with currency ID $currId</strong></div>";
+                }
             }
-
         }
         else{
 
             if (!empty($productId)){
-                foreach (Capsule::table('tblhosting')->where(array(
-                    ['packageid', '=', $productId],
-                    ['domainstatus', 'IN', ['Active','Suspended']],
-                ))->pluck('id') as $serviceId) {
-                    $updated_serviceIds[] = $serviceId;
-                    if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
+                $hosting_plans = Capsule::table('tblhosting')
+                    ->select('tblhosting.id')
+                    ->where('tblhosting.packageid', '=', $productId)
+                    ->whereIn('tblhosting.domainstatus', ['Active','Suspended'])
+                    ->get();
+
+                //return print_r($hosting_plans, true); //DEBUG
+                foreach ($hosting_plans as $service){
+                    $affected_serviceIds[] = $service->id;
+                    if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $service->id, 'autorecalc' => true));
                 }
-                $dt .= '<strong>Update completed for clients hosting plans using the selected product</strong><br/>';
+                if (!$testrun){
+                    $dt .= "<div><strong>Update completed for clients hosting plans created from product ID $productId and currency ID $currId</strong></div>";
+                }
             }
             else{
-                foreach(Capsule::table('tblclients')->pluck('id') as $userid){
-                    if($product && ($product == "All" || $product == "hosting")){
-                        foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
-                            $updated_serviceIds[] = $serviceId;
-                            if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
-                        }
+                if($productType && ($productType == "All" || $productType == "hosting")){
+                    foreach (Capsule::table('tblhosting')->pluck('id') as $serviceId) {
+                        $affected_serviceIds[] = $serviceId;
+                        if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
-                    if($product && ($product == "All" || $product == "addon")){
-                        foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
-                            $updated_addonIds[] = $serviceAddonId;
-                            if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
-                        }
-                    }
-                    if($product && ($product == "All" || $product == "domain")){
-                        foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
-                            $updated_domainIds[] = $domainId;
-                            if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
-                        }
-                    }        
                 }
-                $dt .= '<strong>Update completed for all clients</strong><br/>';
+                if($productType && ($productType == "All" || $productType == "addon")){
+                    foreach (Capsule::table('tblhostingaddons')->pluck('id') as $serviceAddonId) {
+                        $affected_addonIds[] = $serviceAddonId;
+                        if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
+                    }
+                }
+                if($productType && ($productType == "All" || $productType == "domain")){
+                    foreach (Capsule::table('tbldomains')->pluck('id') as $domainId) {
+                        $affected_domainIds[] = $domainId;
+                        if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
+                    }
+                }
+
+                if (!$testrun){
+                    $dt .= '<div><strong>Update completed for all selected product types.</strong></div>';
+                }
             }
 
         }
+        if ($testrun){
+            $dt .= '<h4>If this were not a test run, the following would be changed:</h4>';
+        }
+        else{
+            $dt .= '<h4>The following has been changed:</h4>';
+        }
 
-        $dt .= 'Service IDs: ' . implode(',', $updated_serviceIds);
-        $dt .= 'Addon IDs: ' . implode(',', $updated_addonIds);
-        $dt .= 'Domain IDs: ' . implode(',', $updated_domainIds);
+        $dt .= '<ul>';
+        $dt .= '<li>Service IDs: ' . implode(',', $affected_serviceIds) . '</li>';
+        $dt .= '<li>Addon IDs: ' . implode(',', $affected_addonIds) . '</li>';
+        $dt .= '<li>Domain IDs: ' . implode(',', $affected_domainIds) . '</li>';
+        $dt .= '</ul>';
         $dt .= '<br/><br/><a href="'.$modulelink.'" style="text-decoration: none;display: inline-block;padding: 8px 16px;background-color: #f1f1f1;color: black;border-radius: 5px;">&laquo; Go Back </a>';
 
         return $dt;
