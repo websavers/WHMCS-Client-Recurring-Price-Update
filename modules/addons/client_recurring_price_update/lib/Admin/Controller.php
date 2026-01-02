@@ -27,11 +27,11 @@ class Controller {
 
         $dt .= "<input type='checkbox' name='testrun' id='testrun' checked='checked' /> Test Run <br/>";
 
-        $dt .= "<label>Currency</label><br/><select id='currencyId' value='0' class='custom-select'>$currency_options</select><br/>";
+        $dt .= "<label>Currency</label><br/><select name='currencyId' id='currencyId' class='custom-select'>$currency_options</select><br/>";
 
         $dt .= '<hr/>';
             
-        $dt .= '<label>Select by Service Type</label><br/><select id="product_type" value="all" class="custom-select">
+        $dt .= '<label>Select by Service Type</label><br/><select name="product_type" id="product_type" value="all" class="custom-select">
             <option value="all">All</option>
             <option value="hosting">Hosting</option>
             <option value="addon">Addons</option>
@@ -39,7 +39,7 @@ class Controller {
          </select>';
 
         $dt .= '<div style="text-align:center;margin-top:10px;">&mdash; OR &mdash;</div>';
-        $dt .= '<label>Select by Product</label><br/><select id="product_id" value="all" class="custom-select">
+        $dt .= '<label>Select by Product</label><br/><select name="product_id" id="product_id" value="all" class="custom-select">
             <option value="all">All</option>' . $product_options . '</select><br/>';
 
         $dt .= '<hr/>';
@@ -89,7 +89,6 @@ EOF;
 
     }
 
-
     public function submit($post)
     {
         $currId     = $post['currencyId'];
@@ -109,14 +108,16 @@ EOF;
 
         if ($testrun) $dt .= 'This is a test run. No services will actually be updated.<br/>';
 
-        if($currId > 0){
-            var_dump($currId)
+        return $currId;
+
+        if ($currId > 0){
+            return $currId; ///DEBUG
 
             if (!empty($productId)){
-                var_dump($productId);
+                return $productId; ///DEBUG
                 // TODO: This should eventually become a JOIN statement rather than nested queries
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){ 
-                    var_dump($userid);
+                    return $userid; ///DEBUG
                     foreach (Capsule::table('tblhosting')->where(array(
                         ['userid', '=', $userid],
                         ['packageid', '=', $productId],
