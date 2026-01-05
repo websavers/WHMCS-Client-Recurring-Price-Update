@@ -132,19 +132,19 @@ EOF;
             else{
                 foreach(Capsule::table('tblclients')->where('currency', '=', $currId)->pluck('id') as $userid){
                     if($productType && ($productType == "All" || $productType == "hosting")){
-                        foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->pluck('id') as $serviceId) {
+                        foreach (Capsule::table('tblhosting')->where('userid', '=', $userid)->whereIn('domainstatus', ['Active','Suspended'])->pluck('id') as $serviceId) {
                             $affected_serviceIds[] = $serviceId;
                             if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                         }
                     }
                     if($productType && ($productType == "All" || $productType == "addon")){
-                        foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->pluck('id') as $serviceAddonId) {
+                        foreach (Capsule::table('tblhostingaddons')->where('userid', '=', $userid)->whereIn('status', ['Active','Suspended'])->pluck('id') as $serviceAddonId) {
                             $affected_addonIds[] = $serviceAddonId;
                             if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
                         }
                     }
                     if($productType && ($productType == "All" || $productType == "domain")){
-                        foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->pluck('id') as $domainId) {
+                        foreach (Capsule::table('tbldomains')->where('userid', '=', $userid)->whereIn('status', ['Active','Redemption'])->pluck('id') as $domainId) {
                             $affected_domainIds[] = $domainId;
                             if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
                         }
@@ -176,19 +176,19 @@ EOF;
             }
             else{
                 if($productType && ($productType == "All" || $productType == "hosting")){
-                    foreach (Capsule::table('tblhosting')->pluck('id') as $serviceId) {
+                    foreach (Capsule::table('tblhosting')->whereIn('domainstatus', ['Active','Suspended'])->pluck('id') as $serviceId) {
                         $affected_serviceIds[] = $serviceId;
                         if (!$testrun) localAPI('UpdateClientProduct', array('serviceid' => $serviceId, 'autorecalc' => true));
                     }
                 }
                 if($productType && ($productType == "All" || $productType == "addon")){
-                    foreach (Capsule::table('tblhostingaddons')->pluck('id') as $serviceAddonId) {
+                    foreach (Capsule::table('tblhostingaddons')->whereIn('status', ['Active','Suspended'])->pluck('id') as $serviceAddonId) {
                         $affected_addonIds[] = $serviceAddonId;
                         if (!$testrun) localAPI('UpdateClientAddon', array('id' => $serviceAddonId, 'autorecalc' => true));
                     }
                 }
                 if($productType && ($productType == "All" || $productType == "domain")){
-                    foreach (Capsule::table('tbldomains')->pluck('id') as $domainId) {
+                    foreach (Capsule::table('tbldomains')->whereIn('status', ['Active','Redemption'])->pluck('id') as $domainId) {
                         $affected_domainIds[] = $domainId;
                         if (!$testrun) localAPI('UpdateClientDomain', array('domainid' => $domainId, 'autorecalc' => true));
                     }
