@@ -14,6 +14,8 @@ class Controller {
         $product_options = "";
         $currency_options = "";
 
+        $dt .= 'WARNING: if you have hosting plans that use billing cycles that are now disabled in the product settings, WHMCS will set their prices to $0';
+
         $products = localAPI('GetProducts');
         foreach ($products['products']['product'] as $p){
             $product_options .= "<option value='" . $p['pid'] . "'>" . $p['name'] . "</option>";
